@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Sync Solves
         uses: joshcai/leetcode-sync@master
@@ -15,5 +17,5 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           leetcode-csrf-token: ''
           leetcode-session: ${{ secrets.LEETCODE_SESSION }}
-          filter-duplicate-ac: true
+          filter-duplicate-secs: 86400
           destination-folder: 'solutions'
