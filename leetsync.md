@@ -66,11 +66,13 @@ jobs:
       - name: Sync Solves
         uses: joshcai/leetcode-sync@master
         with:
-          github-token: \${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           leetcode-csrf-token: ''
-          leetcode-session: \${{ secrets.LEETCODE_SESSION }}
+          leetcode-session: ${{ secrets.LEETCODE_SESSION }}
+          leetcode-username: ${{ secrets.LEETCODE_USERNAME }}
           filter-duplicate-secs: 86400
           destination-folder: 'solutions'
+
 ```
 
 5. Click the green **Commit changes** button in the top-right corner, then click **Commit changes** a second time to save the file permanently.
