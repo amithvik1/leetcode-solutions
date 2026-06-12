@@ -1,0 +1,19 @@
+name: Sync LeetCode Solves
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync Solves
+        uses: joshcai/leetcode-sync@v1.7.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          leetcode-csrf-token: ''
+          leetcode-session: ${{ secrets.LEETCODE_SESSION }}
+          filter-duplicate-ac: true
+          destination-folder: 'solutions'
