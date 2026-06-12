@@ -36,6 +36,7 @@ To allow the GitHub robot to securely fetch your code submissions, you need to p
 5. In the **Name** input field, type exactly: `LEETCODE_SESSION`
 6. In the **Secret** text area, paste the long text string you copied in Step 2.
 7. Click **Add secret**.
+8. Make another secret , name it `LEETCODE_USERNAME` and add your Leetcode Username to it. It is case sensitive , make sure to paste it properly.
 
 ---
 
