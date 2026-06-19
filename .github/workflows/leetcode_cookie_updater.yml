@@ -1,28 +1,55 @@
-name: Update LeetCode Cookies
+name: Test LeetCode Access
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 */14 * *"
 
 jobs:
-  update_cookies:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Update LeetCode cookies
-        uses: vishrutkmr7/UpdateLCCookies@v1.0.0
+      - uses: actions/setup-python@v5
         with:
-          github-token: ${{ secrets.GH_PAT }}
-          leetcode-email: ${{ secrets.LEETCODE_USERNAME }}
-          leetcode-password: ${{ secrets.LEETCODE_PASSWORD }}
+          python-version: "3.11"
 
-      - name: Trigger sync workflow
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+      - run: |
+          pip install playwright
+          playwright install chromium
+
+      - name: Test LeetCode
         run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_PAT" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/sync.yml/dispatches \
-            -d '{"ref":"main"}'
+          python << 'EOF'
+          from playwright.sync_api import sync_playwright
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+
+              page = browser.new_page()
+
+              print("Opening LeetCode...")
+
+              page.goto(
+                  "https://leetcode.com/accounts/login/",
+                  timeout=120000,
+                  wait_until="commit"
+              )
+
+              print("URL:", page.url)
+
+              try:
+                  print("TITLE:", page.title())
+              except Exception as e:
+                  print("TITLE ERROR:", e)
+
+              page.screenshot(path="page.png")
+
+              print("FIRST 2000 CHARS:")
+              print(page.content()[:2000])
+
+              browser.close()
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: leetcode-page
+          path: page.png
