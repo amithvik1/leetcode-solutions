@@ -47,15 +47,21 @@ jobs:
 
               page.goto(
                   "https://leetcode.com/accounts/login/",
-                  wait_until="networkidle"
+                  wait_until="domcontentloaded",
+                  timeout=60000
               )
+
+              print("Current URL:", page.url)
+              print("Page title:", page.title())
+
+              page.wait_for_timeout(5000)
 
               page.fill("#id_login", username)
               page.fill("#id_password", password)
 
               page.click('button[type="submit"]')
 
-              page.wait_for_timeout(5000)
+              page.wait_for_timeout(10000)
 
               cookies = context.cookies()
 
@@ -69,16 +75,21 @@ jobs:
               browser.close()
 
           if not session_cookie:
-              raise Exception("LEETCODE_SESSION not found")
+              raise Exception(
+                  "LEETCODE_SESSION not found after login."
+              )
 
-          print("Cookie acquired.")
+          print("Cookie acquired successfully.")
 
           headers = {
               "Authorization": f"token {token}",
               "Accept": "application/vnd.github+json"
           }
 
-          key_url = f"https://api.github.com/repos/{repo}/actions/secrets/public-key"
+          key_url = (
+              f"https://api.github.com/repos/"
+              f"{repo}/actions/secrets/public-key"
+          )
 
           key_data = requests.get(
               key_url,
@@ -92,27 +103,35 @@ jobs:
 
           sealed_box = public.SealedBox(public_key)
 
-          encrypted = base64.b64encode(
-              sealed_box.encrypt(session_cookie.encode())
+          encrypted_value = base64.b64encode(
+              sealed_box.encrypt(
+                  session_cookie.encode()
+              )
           ).decode()
 
-          secret_url = f"https://api.github.com/repos/{repo}/actions/secrets/LEETCODE_SESSION"
+          secret_url = (
+              f"https://api.github.com/repos/"
+              f"{repo}/actions/secrets/LEETCODE_SESSION"
+          )
 
-          r = requests.put(
+          response = requests.put(
               secret_url,
               headers=headers,
               json={
-                  "encrypted_value": encrypted,
+                  "encrypted_value": encrypted_value,
                   "key_id": key_data["key_id"]
               }
           )
 
-          print("Secret update status:", r.status_code)
+          print(
+              "Secret update status:",
+              response.status_code
+          )
 
-          if r.status_code not in [201, 204]:
-              raise Exception(r.text)
+          if response.status_code not in [201, 204]:
+              raise Exception(response.text)
 
-          print("Secret updated successfully.")
+          print("LEETCODE_SESSION updated successfully.")
           EOF
 
       - name: Trigger sync workflow
