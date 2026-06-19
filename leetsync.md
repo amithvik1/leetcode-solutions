@@ -94,3 +94,160 @@ The workflow will spin up. Give it about **2 to 3 minutes** to run through your 
 Head back to your repository's main **Code** page—you will find a brand new folder called `solutions` packed full of every single problem you have ever solved, categorized with code files and readmes. From this point forward, you can close the tabs and forget about it; the workflow will wake up at midnight completely invisibly to pull your daily updates. 
 
 Swap repository links with your friend so you can cross-reference your source code anytime!
+
+---
+
+---
+
+
+# 🔄 Optional: Automatic Cookie Refresh
+
+LeetCode occasionally expires your login session cookie. When that happens, the GitHub sync workflow will stop working until
+ a fresh cookie is provided.
+
+This repository includes a helper script that can automatically:
+
+* Read your current LeetCode cookie from Chrome
+* Update the GitHub Secret
+* Trigger the sync workflow
+* Verify that the sync completed successfully
+
+Once configured, refreshing your cookie only takes a single command.
+
+---
+
+# 🔑 Step 1: Create a GitHub Personal Access Token
+
+The script needs permission to update the `LEETCODE_SESSION` secret in your repository.
+
+## Create a Classic Personal Access Token
+
+1. Open GitHub.
+2. Click your profile picture → **Settings**.
+3. Scroll down and click **Developer settings**.
+4. Click **Personal access tokens**.
+5. Click **Tokens (classic)**.
+6. Click **Generate new token (classic)**.
+
+### Token Name
+
+Use any name you like:
+
+```text id="gt04ui"
+LeetCode Cookie Updater
+```
+
+### Expiration
+
+Choose any expiration period you prefer.
+
+Examples:
+
+```text id="g17coh"
+30 days
+90 days
+1 year
+```
+
+### Select Scopes
+
+Enable:
+
+```text id="uxzkju"
+repo
+workflow
+```
+
+These permissions allow the script to:
+
+* Update your `LEETCODE_SESSION` GitHub Secret
+* Trigger the LeetCode sync workflow
+
+### Generate the Token
+
+Click:
+
+```text id="az9kjw"
+Generate token
+```
+
+Copy the token immediately.
+
+GitHub will only display it once.
+
+The token should look similar to:
+
+```text id="v4fys4"
+ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+---
+
+# ⚠️ Important Security Warning
+
+Your GitHub Personal Access Token gives access to your repositories.
+
+Treat it exactly like a password.
+
+Never:
+
+* Share it with anyone
+* Post screenshots containing it
+* Upload it to GitHub
+* Commit it into source code
+* Send it through Discord, Telegram, Reddit, or social media
+
+If you accidentally expose the token:
+
+1. Go to GitHub → Settings → Developer Settings → Personal Access Tokens
+2. Delete the token immediately
+3. Generate a new one
+
+---
+
+# 📁 Create a .env File
+
+Create a file named:
+
+```text id="3x2lqm"
+.env
+```
+
+Paste:
+
+```env id="13egx7"
+GH_PAT=your_github_token
+GITHUB_OWNER=your_github_username
+GITHUB_REPO=your_repository_name
+```
+
+Example:
+
+```env id="czk25o"
+GH_PAT=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GITHUB_OWNER=amithvik1
+GITHUB_REPO=leetcode-solutions
+```
+
+---
+
+# ⚠️ Never Upload Your .env File
+
+Your `.env` file contains your GitHub access token.
+
+Never commit it to GitHub.
+
+Never share screenshots of it.
+
+Never send it to anyone.
+
+Create a `.gitignore` file containing:
+
+```gitignore id="nxlsr3"
+.env
+.venv/
+__pycache__/
+```
+
+This prevents your token from accidentally being uploaded.
+
