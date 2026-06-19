@@ -1,138 +1,21 @@
-name: Refresh LeetCode Session
+name: Update LeetCode Cookies
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: "0 0 */14 * *"
 
 jobs:
-  refresh:
+  update_cookies:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-python@v5
+      - name: Update LeetCode cookies
+        uses: vishrutkmr7/UpdateLCCookies@v1.0.0
         with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          pip install playwright requests pynacl
-          playwright install chromium
-
-      - name: Refresh cookie and update secret
-        env:
-          LEETCODE_USERNAME: ${{ secrets.LEETCODE_USERNAME }}
-          LEETCODE_PASSWORD: ${{ secrets.LEETCODE_PASSWORD }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          REPO: ${{ github.repository }}
-        run: |
-          python << 'EOF'
-          import os
-          import base64
-          import requests
-          from nacl import public, encoding
-          from playwright.sync_api import sync_playwright
-
-          username = os.environ["LEETCODE_USERNAME"]
-          password = os.environ["LEETCODE_PASSWORD"]
-          token = os.environ["GH_PAT"]
-          repo = os.environ["REPO"]
-
-          print("Opening LeetCode...")
-
-          with sync_playwright() as p:
-              browser = p.chromium.launch(headless=True)
-              context = browser.new_context()
-              page = context.new_page()
-
-              page.goto(
-                  "https://leetcode.com/accounts/login/",
-                  wait_until="domcontentloaded",
-                  timeout=60000
-              )
-
-              print("Current URL:", page.url)
-              print("Page title:", page.title())
-
-              page.wait_for_timeout(5000)
-
-              page.fill("#id_login", username)
-              page.fill("#id_password", password)
-
-              page.click('button[type="submit"]')
-
-              page.wait_for_timeout(10000)
-
-              cookies = context.cookies()
-
-              session_cookie = None
-
-              for cookie in cookies:
-                  if cookie["name"] == "LEETCODE_SESSION":
-                      session_cookie = cookie["value"]
-                      break
-
-              browser.close()
-
-          if not session_cookie:
-              raise Exception(
-                  "LEETCODE_SESSION not found after login."
-              )
-
-          print("Cookie acquired successfully.")
-
-          headers = {
-              "Authorization": f"token {token}",
-              "Accept": "application/vnd.github+json"
-          }
-
-          key_url = (
-              f"https://api.github.com/repos/"
-              f"{repo}/actions/secrets/public-key"
-          )
-
-          key_data = requests.get(
-              key_url,
-              headers=headers
-          ).json()
-
-          public_key = public.PublicKey(
-              key_data["key"].encode(),
-              encoding.Base64Encoder()
-          )
-
-          sealed_box = public.SealedBox(public_key)
-
-          encrypted_value = base64.b64encode(
-              sealed_box.encrypt(
-                  session_cookie.encode()
-              )
-          ).decode()
-
-          secret_url = (
-              f"https://api.github.com/repos/"
-              f"{repo}/actions/secrets/LEETCODE_SESSION"
-          )
-
-          response = requests.put(
-              secret_url,
-              headers=headers,
-              json={
-                  "encrypted_value": encrypted_value,
-                  "key_id": key_data["key_id"]
-              }
-          )
-
-          print(
-              "Secret update status:",
-              response.status_code
-          )
-
-          if response.status_code not in [201, 204]:
-              raise Exception(response.text)
-
-          print("LEETCODE_SESSION updated successfully.")
-          EOF
+          github-token: ${{ secrets.GH_PAT }}
+          leetcode-email: ${{ secrets.LEETCODE_USERNAME }}
+          leetcode-password: ${{ secrets.LEETCODE_PASSWORD }}
 
       - name: Trigger sync workflow
         env:
@@ -140,6 +23,6 @@ jobs:
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token $GH_PAT" \
+            -H "Authorization: Bearer $GH_PAT" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/sync.yml/dispatches \
             -d '{"ref":"main"}'
