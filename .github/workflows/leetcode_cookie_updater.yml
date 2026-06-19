@@ -2,8 +2,8 @@ name: Update LeetCode Cookies
 
 on:
   schedule:
-    - cron: '0 0 */10 * *' # Triggers every 10 days to stay ahead of expiration
-  workflow_dispatch: # Allows you to run this manually anytime
+    - cron: '0 0 */10 * *' # Triggers every 10 days
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   refresh-cookie:
@@ -30,15 +30,21 @@ jobs:
             const page = await browser.newPage();
             
             // Go to login page
-            await page.goto('https://leetcode.com', { waitUntil: 'networkidle2' });
+            await page.goto('https://leetcode.com/accounts/login/', { waitUntil: 'networkidle2' });
             
-            // Fill credentials using your GitHub Secrets variables
-            await page.type('#id_login', '${{ secrets.LEETCODE_USERNAME }}');
-            await page.type('#id_password', '${{ secrets.LEETCODE_PASSWORD }}');
+            // Wait safely for the updated login inputs to render
+            await page.waitForSelector('input[type=\"text\"], input[type=\"email\"]', { timeout: 10000 });
             
-            // Click Submit and wait for redirection back to home page
+            // Fill credentials using generic, resilient input types
+            await page.type('input[type=\"text\"], input[type=\"email\"]', '${{ secrets.LEETCODE_USERNAME }}');
+            await page.type('input[type=\"password\"]', '${{ secrets.LEETCODE_PASSWORD }}');
+            
+            // Click the primary sign in button (targets either the type submit or the flex button layout)
+            const submitSelector = 'button[type=\"submit\"], .btn-content__2g9R';
+            await page.waitForSelector(submitSelector);
+            
             await Promise.all([
-              page.click('#signin_btn'),
+              page.click(submitSelector),
               page.waitForNavigation({ waitUntil: 'networkidle2' })
             ]);
             
@@ -47,7 +53,7 @@ jobs:
             const sessionCookie = cookies.find(c => c.name === 'LEETCODE_SESSION');
             
             if (!sessionCookie) {
-              console.error('Error: Could not extract LEETCODE_SESSION. Check credentials or Captcha requirements.');
+              console.error('Error: Could not extract LEETCODE_SESSION. Double check credentials or Captcha interference.');
               process.exit(1);
             }
             
