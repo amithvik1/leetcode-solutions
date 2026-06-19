@@ -2,36 +2,65 @@ name: Update LeetCode Cookies
 
 on:
   schedule:
-    # Triggers every 10 days to stay ahead of the 14-day expiry
-    - cron: '0 0 */10 * *'
-  workflow_dispatch: # Allows you to run this manually whenever you want
+    - cron: '0 0 */10 * *' # Triggers every 10 days to stay ahead of expiration
+  workflow_dispatch: # Allows you to run this manually anytime
 
 jobs:
-  update_cookies:
+  refresh-cookie:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch Cookie from LeetCode
-        id: fetch_cookie
-        run: |
-          COOKIE_DATA=$(curl -s -X POST "https://leetcode.com" \
-            -H "Content-Type: application/json" \
-            -d '{"login":"${{ secrets.LEETCODE_USERNAME }}","password":"${{ secrets.LEETCODE_PASSWORD }}"}' \
-            -i)
-          
-          # Extracts the session token from the response header
-          SESSION_TOKEN=$(echo "$COOKIE_DATA" | grep -oI "LEETCODE_SESSION=[^;]*" | cut -d= -f2)
-          
-          if [ -z "$SESSION_TOKEN" ]; then
-            echo "Error: Failed to authenticate. Please check your credentials."
-            exit 1
-          fi
-          
-          echo "::add-mask::$SESSION_TOKEN"
-          echo "session_token=$SESSION_TOKEN" >> $GITHUB_OUTPUT
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Update GitHub Secrets
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Puppeteer
+        run: npm install puppeteer
+
+      - name: Fetch Cookie via Headless Chrome
+        id: get_cookie
+        run: |
+          node -e "
+          const puppeteer = require('puppeteer');
+          (async () => {
+            const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+            const page = await browser.newPage();
+            
+            // Go to login page
+            await page.goto('https://leetcode.com', { waitUntil: 'networkidle2' });
+            
+            // Fill credentials using your GitHub Secrets variables
+            await page.type('#id_login', '${{ secrets.LEETCODE_USERNAME }}');
+            await page.type('#id_password', '${{ secrets.LEETCODE_PASSWORD }}');
+            
+            // Click Submit and wait for redirection back to home page
+            await Promise.all([
+              page.click('#signin_btn'),
+              page.waitForNavigation({ waitUntil: 'networkidle2' })
+            ]);
+            
+            // Extract all current session cookies
+            const cookies = await page.cookies();
+            const sessionCookie = cookies.find(c => c.name === 'LEETCODE_SESSION');
+            
+            if (!sessionCookie) {
+              console.error('Error: Could not extract LEETCODE_SESSION. Check credentials or Captcha requirements.');
+              process.exit(1);
+            }
+            
+            // Output token cleanly back to GitHub Actions runner
+            console.log('::add-mask::' + sessionCookie.value);
+            require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'token=' + sessionCookie.value + '\n');
+            await browser.close();
+          })();
+          "
+
+      - name: Auto-Overwrite Repository Secret
         uses: gliech/create-github-secret-action@v1
         with:
           name: 'LEETCODE_SESSION'
-          value: ${{ steps.fetch_cookie.outputs.session_token }}
+          value: ${{ steps.get_cookie.outputs.token }}
           pa_token: ${{ secrets.GITHUB_TOKEN }}
