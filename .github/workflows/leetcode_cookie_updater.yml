@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Automatically Update Leetcode Session Cookie
-        uses: vishrutkmr7/UpdateLCCookies@v1.0.0
+        uses: vishrutkmr7/UpdateLCCookies@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           leetcode-email: ${{ secrets.LEETCODE_USERNAME }}
