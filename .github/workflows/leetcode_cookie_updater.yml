@@ -10,10 +10,28 @@ jobs:
   update_cookies:
     runs-on: ubuntu-latest
     steps:
-      - name: Automatically Update Leetcode Session Cookie
-        # Target the official stable v1 tag
-        uses: joshcai/leetcode-sync-cookies-action@v1
+      - name: Fetch Cookie from LeetCode
+        id: fetch_cookie
+        run: |
+          COOKIE_DATA=$(curl -s -X POST "https://leetcode.com" \
+            -H "Content-Type: application/json" \
+            -d '{"login":"${{ secrets.LEETCODE_USERNAME }}","password":"${{ secrets.LEETCODE_PASSWORD }}"}' \
+            -i)
+          
+          # Extracts the session token from the response header
+          SESSION_TOKEN=$(echo "$COOKIE_DATA" | grep -oI "LEETCODE_SESSION=[^;]*" | cut -d= -f2)
+          
+          if [ -z "$SESSION_TOKEN" ]; then
+            echo "Error: Failed to authenticate. Please check your credentials."
+            exit 1
+          fi
+          
+          echo "::add-mask::$SESSION_TOKEN"
+          echo "session_token=$SESSION_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Update GitHub Secrets
+        uses: gliech/create-github-secret-action@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          username: ${{ secrets.LEETCODE_USERNAME }}
-          password: ${{ secrets.LEETCODE_PASSWORD }}
+          name: 'LEETCODE_SESSION'
+          value: ${{ steps.fetch_cookie.outputs.session_token }}
+          pa_token: ${{ secrets.GITHUB_TOKEN }}
