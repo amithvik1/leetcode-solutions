@@ -96,7 +96,7 @@ Head back to your repository's main **Code** page—you will find a brand new fo
 Swap repository links with your friend so you can cross-reference your source code anytime!
 
 ---
-
+---
 ---
 
 
@@ -241,7 +241,7 @@ Never share screenshots of it.
 
 Never send it to anyone.
 
-Create a `.gitignore` file containing:
+IF: You ever comming your folder to GitHub , Create a `.gitignore` file containing:
 
 ```gitignore id="nxlsr3"
 .env
