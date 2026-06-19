@@ -2,7 +2,7 @@ name: Update LeetCode Cookies
 
 on:
   schedule:
-    # Automatically triggers every 10 days to stay ahead of the 14-day expiry
+    # Triggers every 10 days to stay ahead of the 14-day expiry
     - cron: '0 0 */10 * *'
   workflow_dispatch: # Allows you to run this manually whenever you want
 
@@ -11,8 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Automatically Update Leetcode Session Cookie
-        uses: vishrutkmr7/UpdateLCCookies@master
+        # Target the official stable v1 tag
+        uses: joshcai/leetcode-sync-cookies-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          leetcode-email: ${{ secrets.LEETCODE_USERNAME }}
-          leetcode-password: ${{ secrets.LEETCODE_PASSWORD }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.LEETCODE_USERNAME }}
+          password: ${{ secrets.LEETCODE_PASSWORD }}
