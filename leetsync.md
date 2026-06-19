@@ -116,11 +116,11 @@ Once configured, refreshing your cookie only takes a single command.
 
 ---
 
-# 🔑 Step 1: Create a GitHub Personal Access Token
+## 🔑 Step 1: Create a GitHub Personal Access Token
 
 The script needs permission to update the `LEETCODE_SESSION` secret in your repository.
 
-## Create a Classic Personal Access Token
+### Create a Classic Personal Access Token
 
 1. Open GitHub.
 2. Click your profile picture → **Settings**.
@@ -183,7 +183,7 @@ ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ---
 
-# ⚠️ Important Security Warning
+## ⚠️ Important Security Warning
 
 Your GitHub Personal Access Token gives access to your repositories.
 
@@ -205,7 +205,7 @@ If you accidentally expose the token:
 
 ---
 
-# 📁 Create a .env File
+## 📁 Create a .env File
 
 Create a file named:
 
@@ -231,7 +231,7 @@ GITHUB_REPO=leetcode-solutions
 
 ---
 
-# ⚠️ Never Upload Your .env File
+## ⚠️ Never Upload Your .env File
 
 Your `.env` file contains your GitHub access token.
 
