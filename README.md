@@ -144,7 +144,7 @@ Choose any expiration period you prefer.
 Examples:
 
 ```text id="g17coh"
-30 days
+Never (personally what I did).
 90 days
 1 year
 ```
