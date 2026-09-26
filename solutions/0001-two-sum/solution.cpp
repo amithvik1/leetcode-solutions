@@ -6,9 +6,9 @@ public:
             int comp = target - nums[i]; 
             if(n.find(comp) != n.end()){
                 return {n[comp] , i}; 
-            }
+            } 
             n[nums[i]] = i; 
         }
         return {}; 
     }
-};
+}; 
